@@ -136,8 +136,8 @@ def optimize_patch(cfg):
     exp_root = os.path.join(exp_folder, exp_name)
     patches_folder = os.path.join(exp_root, "patches")
     if exp_name in os.listdir(exp_folder):
-        input("The folder %s already exists. If you want to overwrite it, press Enter. Otherwise ctrl-c to exit" % exp_root)
-        input("Are you sure? Do you really want to overwrite folder %s?" % exp_root)
+        # input("The folder %s already exists. If you want to overwrite it, press Enter. Otherwise ctrl-c to exit" % exp_root)
+        # input("Are you sure? Do you really want to overwrite folder %s?" % exp_root)
         os.popen("rm -r %s" % exp_root)
         print("Folder %s deleted!" % exp_root)
         time.sleep(1) # required to complete rm request
@@ -174,7 +174,7 @@ def optimize_patch(cfg):
 #     momentum = cfg_patch_opt["optimizer"]["momentum"]
     optimizer = optimizer_cls([model.patch], lr=learning_rate)
     print(optimizer)
-    (loss_fn, smooth_loss_fn, NPS_fn), weights = get_patch_loss_function(cfg_patch_opt)
+    (loss_fn, smooth_loss_fn), weights = get_patch_loss_function(cfg_patch_opt)  # ,NPS_fn
 
     epoch_loss = []
     epoch_gradnorm = []
@@ -356,19 +356,19 @@ def optimize_patch(cfg):
                 loss_no_misc, loss_misc, gamma = loss_fn(input=outputs, target=labels, patch_mask = patch_masks.clone().to(device)) 
 
                 smooth_loss = smooth_loss_fn(model.patch)  
-                NPS_loss = NPS_fn(model.patch, patch_params=patch_params)
+                # NPS_loss = NPS_fn(model.patch, patch_params=patch_params)
 
 
                 # log info
                 epoch_loss[i][0]    += loss_no_misc.data
                 epoch_loss[i][1]    += loss_misc.data
                 epoch_loss[i][2]    += smooth_loss.data
-                epoch_loss[i][3]    += NPS_loss.data
+                # epoch_loss[i][3]    += NPS_loss.data
                 epoch_gamma[i]      += gamma 
                 epoch_samples       += cfg_patch_opt['batch_size']
 
                 
-                other_losses = [loss_no_misc, loss_misc, smooth_loss, NPS_loss]
+                other_losses = [loss_no_misc, loss_misc, smooth_loss]  # ,NPS_loss
                 # retain_graph needed for multiple adv_loss computed on the same model output
                 retain_graph_bool = [True, False, False, False]
                 norm_grad_losses = [None, None, None, None]
@@ -457,14 +457,6 @@ def optimize_patch(cfg):
     print("Final patch saved")
 
 
-
-
-
-
-
-
-
-
 if __name__ == "__main__":
     torch.autograd.set_detect_anomaly(True)
     parser = argparse.ArgumentParser(description="config")
@@ -472,14 +464,14 @@ if __name__ == "__main__":
         "--config",
         nargs="?",
         type=str,
-        default="configs/icnet_patch.yml",
+        default="configs/bisenet_cityscapes.yml",
         help="Configuration file to use",
     )
 
     args = parser.parse_args()
 
     with open(args.config) as fp:
-        cfg = yaml.load(fp)
+        cfg = yaml.safe_load(fp)
 
     optimize_patch(cfg)
 

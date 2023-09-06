@@ -1,11 +1,11 @@
 device:
-    gpu: 5
-    n_workers: 16
+    gpu: 1
+    n_workers: 4
 
 model:
     arch: bisenetX39
     version: cityscapes
-    path: /path/to/pretrained/bisenet/bisenetX39_cityscapes.pth
+    path: /home/qiyuan/2023fall/SemSegAdvPatch/pretrained_models/cityscapes-bisenet-X39.pth # /path/to/pretrained/bisenet/bisenetX39_cityscapes.pth
     with_bn: True
 
 data:
@@ -16,7 +16,7 @@ data:
     test_split: test
     img_rows: 1024
     img_cols: 2048
-    path: /path/to/cityscapes/root
+    path: /home/qiyuan/2023spring/superpixel-align/data/cityscapes  # /path/to/cityscapes/root
     img_norm: True
     bottom_crop: 0 
     bgr: False

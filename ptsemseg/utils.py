@@ -5,7 +5,7 @@ import os
 import logging
 import datetime
 import numpy as np
-
+import re
 from collections import OrderedDict
 
 
@@ -69,8 +69,11 @@ def get_logger(logdir):
 
 def get_model_state(state, model_name):
     print(model_name)
-
-    if model_name in ['ddrnet23Slim', 'ddrnet23']:
+    print(state.keys())
+    strings = ['ddrnet23Slim', 'ddrnet23']
+    pattern = '|'.join(strings)
+    # if model_name in ['ddrnet23Slim', 'ddrnet23']:
+    if re.search(pattern, model_name):
         state = convert_state_dict(state)
         new_state_dict = OrderedDict()
         for k, v in state.items():
@@ -80,15 +83,17 @@ def get_model_state(state, model_name):
             new_state_dict[name] = v
         return new_state_dict
 
-    elif model_name in ['bisenetR18', 'bisenetX39', 'bisenetR101']:
+    strings = ['bisenetR18', 'bisenet-X39', 'bisenetR101']
+    pattern = '|'.join(strings)
+    if re.search(pattern, model_name):
         return convert_state_dict(state)['model']
     
-    elif model_name in ['danetR101']:
+    if model_name in ['danetR101']:
         print(state['state_dict'].keys())
         return convert_state_dict(state)['state_dict']
 
     
-    elif model_name in ['psanet50', 'psanet101']:
+    if model_name in ['psanet50', 'psanet101']:
 
         #print(state.keys())
 

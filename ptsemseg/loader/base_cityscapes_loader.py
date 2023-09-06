@@ -2,6 +2,7 @@ import os
 import torch
 import numpy as np
 import scipy.misc as m
+# from PIL import Image
 
 from torch.utils import data
 from torchvision.transforms.functional import crop
@@ -219,6 +220,7 @@ class baseCityscapesLoader(data.Dataset):
         img = self.image_transform(img)
         classes = np.unique(lbl)
         lbl = lbl.astype(float)
+        # lbl = np.array(Image.fromarray(lbl).resize(size=(self.img_size[0], self.img_size[1])))
         lbl = m.imresize(lbl, (self.img_size[0], self.img_size[1]), "nearest", mode="F")
         lbl = lbl.astype(int)
 
@@ -267,7 +269,8 @@ class baseCityscapesLoader(data.Dataset):
 
 
     def image_transform(self, img, resize=True):
-        if resize is True:
+        if resize:
+            # img = np.array(Image.fromarray(img).resize(size=(self.img_size[0], self.img_size[1])))
             img = m.imresize(img, (self.img_size[0], self.img_size[1]))  # uint8 with RGB mode
 
         # remove alpha channel (if present)

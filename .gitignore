@@ -62,3 +62,5 @@ bin/
 
 # macOS stuff
 .DS_Store
+
+pretrained_models

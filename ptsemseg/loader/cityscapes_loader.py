@@ -1,7 +1,8 @@
 import os
-import torch
+# import torch
 import numpy as np
 import scipy.misc as m
+# from PIL import Image
 
 from ptsemseg.loader.base_cityscapes_loader import baseCityscapesLoader
 
@@ -56,11 +57,13 @@ class cityscapesLoader(baseCityscapesLoader):
             img_path.split(os.sep)[-2],
             os.path.basename(img_path)[:-15] + "gtFine_labelIds.png",
         )
-
+        
         img = m.imread(img_path)
+        # img = Image.open(img_path)
         img = np.array(img, dtype=np.uint8)
 
         lbl = m.imread(lbl_path)
+        # lbl = cv2.imread(lbl_path)
         lbl = self.encode_segmap(np.array(lbl, dtype=np.uint8))
 
         if self.augmentations is not None:
