@@ -77,3 +77,6 @@ If you found this code useful, consider citing
 
 ```
 
+TODO: 
+
+`check scipy.misc imresize's behaviors`
