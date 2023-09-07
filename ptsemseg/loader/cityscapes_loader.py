@@ -58,7 +58,7 @@ class cityscapesLoader(baseCityscapesLoader):
             os.path.basename(img_path)[:-15] + "gtFine_labelIds.png",
         )
         
-        img = m.imread(img_path)
+        img = m.imread(img_path)  # (1016, 2040, 3)
         # img = Image.open(img_path)
         img = np.array(img, dtype=np.uint8)
 
