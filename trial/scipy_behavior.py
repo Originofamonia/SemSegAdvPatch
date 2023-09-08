@@ -13,8 +13,8 @@ def main():
     img_path = f'data/frankfurt_000001_078803_leftImg8bit.png'
     lbl_path = f'data/frankfurt_000001_078803_gtFine_labelIds.png'
     img_size = (512, 1024)
-    img = imageio.imread(img_path)  # ndarray
-    img_pil = Image.open(img_path)
+    # img = imageio.imread(img_path)  # ndarray
+    img = np.array(Image.open(img_path))  # correct
     print(img.shape)  # (1016, 2040, 3)
     m_img = m.imresize(img, img_size)  # after resize, img is still ndarray
     pil_img = np.array(Image.fromarray(img).resize((img_size[1], img_size[0]), Image.BILINEAR))  # correct
@@ -51,7 +51,8 @@ def main():
     # exit()
 
     print(img.shape)  # (512, 1024, 3)
-    lbl = imageio.imread(lbl_path)
+    # lbl = imageio.imread(lbl_path)
+    lbl = np.array(Image.open(lbl_path))
     print(lbl.shape)
     classes = np.unique(lbl)  # ndarray
     lbl = lbl.astype(float)
