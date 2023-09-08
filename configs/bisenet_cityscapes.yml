@@ -51,11 +51,11 @@ adv_patch:
 
         num_opt_samples: 100
         opt_iters: 200
-        batch_size: 10
+        batch_size: 5
 
         use_multiple_outputs: False    # Aux logits on/off
 
-        batch_size_val: 15
+        batch_size_val: 8
         test_log: 50 # test_every
         checkpoint_patch: 50   # save_every
 
