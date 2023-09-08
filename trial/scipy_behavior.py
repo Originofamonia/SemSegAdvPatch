@@ -3,9 +3,9 @@ This file is to check the obselete scipy's imresize behavior
 """
 import numpy as np
 import imageio
-import cv2
+# import cv2
 from PIL import Image
-from skimage.transform import resize
+# from skimage.transform import resize
 import scipy.misc as m  # needs imageio
 import matplotlib.pyplot as plt
 
@@ -14,6 +14,7 @@ def main():
     lbl_path = f'data/frankfurt_000001_078803_gtFine_labelIds.png'
     img_size = (512, 1024)
     img = imageio.imread(img_path)  # ndarray
+    img_pil = Image.open(img_path)
     print(img.shape)  # (1016, 2040, 3)
     m_img = m.imresize(img, img_size)  # after resize, img is still ndarray
     pil_img = np.array(Image.fromarray(img).resize((img_size[1], img_size[0]), Image.BILINEAR))  # correct
@@ -56,7 +57,7 @@ def main():
     lbl = lbl.astype(float)
     # lbl = np.array(Image.fromarray(lbl).resize(size=(self.img_size[0], self.img_size[1])))
     scipy_lbl = m.imresize(lbl, img_size, "nearest", mode="F")
-    pil_lbl = np.array(Image.fromarray(lbl).resize((img_size[1], img_size[0]), Image.NEAREST))  # yes
+    pil_lbl = np.array(Image.fromarray(lbl).resize((img_size[1], img_size[0]), Image.NEAREST))  # correct
     lbl = lbl.astype(int)
     fig = plt.figure(figsize=(10, 10))
     # Add subplot in 1st position
