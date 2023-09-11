@@ -5,7 +5,6 @@
 #---------------------------------------------------------------------
 #---------------------------------------------------------------------
 
-
 import os
 import yaml
 import time
@@ -18,10 +17,10 @@ import time
 
 from torch.utils import data
 from tqdm import tqdm
-import imageio
+# import imageio
 import torch.nn as nn
 
-import scipy.misc as misc
+# import scipy.misc as misc
 
 import patch_utils as patch_utils
 import test_patch as test_patch
@@ -182,25 +181,21 @@ def optimize_patch(cfg):
     epoch_gamma = []
     i = 0
 
-
     # patch position (and base position for EOT) 
     patch_x, patch_y = cfg_patch_attr['pos_x'], cfg_patch_attr['pos_y']
     if(patch_x is None or patch_y is None):
         patch_x = int((train_loader.img_size[1]- model.patch.size(3))/2)
         patch_y = int((train_loader.img_size[0] - model.patch.size(2))/2)
 
-
-    use_transformations = cfg_patch_opt['use_transformations']
-    
+    use_transformations = cfg_patch_opt['use_transformations']    
 
     if 'use_rw_transformations' in cfg_patch_opt.keys() and use_transformations is True:
         use_rw_transformations = cfg_patch_opt['use_rw_transformations']
     else:
         use_rw_transformations = False
-    
 
     print("use_transformations: " + str(use_transformations))
-    print("use_rw_transformations" + str(use_rw_transformations))
+    print("use_rw_transformations: " + str(use_rw_transformations))
 
     online_test1_results, online_test2_results = [],[]
 
@@ -217,7 +212,6 @@ def optimize_patch(cfg):
         set_loader = train_loader,
         rw_transformations = use_rw_transformations
     )
-
     
     while i <= cfg_patch_opt["opt_iters"]:
 
@@ -244,7 +238,6 @@ def optimize_patch(cfg):
                 print(score["Mean Acc : \t"])
                 print("-----------------------------------------------")
 
-
                 online_test1_results.append({"score": score, "class_iou": class_iou, "iteration_count": str(i)})
                 
                 test_results_filename = "result_test1_optimization_%d.pkl" % i
@@ -267,8 +260,7 @@ def optimize_patch(cfg):
         #------------------------------------------------------------------------------------------------------
         # END ONLINE TEST 
         #------------------------------------------------------------------------------------------------------
-         
-        
+
         #------------------------------------------------------------------------------------------------------
         # export the current patch as pkl or png
         if i % cfg_patch_opt["checkpoint_patch"] == 0 and cfg_path["save_patch"] is True:
@@ -300,7 +292,6 @@ def optimize_patch(cfg):
             # comment this part if you want to use original labes
 
             '''
-
             prediction_labels = None
             clear_prediction = None
 
@@ -318,13 +309,8 @@ def optimize_patch(cfg):
                         prediction_labels.append(torch.argmax(aus, dim=1).to(device))
                     prediction_labels = tuple(prediction_labels)
             '''
-            
-            #------------------------------------------------------------------------------------------------------------------
 
-
-            #------------------------------------------------------------------------------------------------------------------
             # batch optimization step
-
             iter_batch_count = 0
             while iter_batch_count < 1:
                 iter_batch_count += 1
@@ -358,7 +344,6 @@ def optimize_patch(cfg):
                 smooth_loss = smooth_loss_fn(model.patch)  
                 # NPS_loss = NPS_fn(model.patch, patch_params=patch_params)
 
-
                 # log info
                 epoch_loss[i][0]    += loss_no_misc.data
                 epoch_loss[i][1]    += loss_misc.data
@@ -367,23 +352,19 @@ def optimize_patch(cfg):
                 epoch_gamma[i]      += gamma 
                 epoch_samples       += cfg_patch_opt['batch_size']
 
-                
                 other_losses = [loss_no_misc, loss_misc, smooth_loss]  # ,NPS_loss
                 # retain_graph needed for multiple adv_loss computed on the same model output
                 retain_graph_bool = [True, False, False, False]
                 norm_grad_losses = [None, None, None, None]
                 norm_print = [None, None, None, None]
 
-
                 def norm(v):
                     n = torch.norm(v, p=float('2'))
                     return (v/n) if n > 0 else v # to avoid NaN error 
-                
 
                 def sign(v):
                     v = torch.sign(v)
                     return v
-
 
                 # compute and normalize each loss
                 for count, l in enumerate(other_losses):
@@ -395,7 +376,6 @@ def optimize_patch(cfg):
                     #norm_grad_losses[count] = sign(grad_loss)
 
                 #print(norm_print[0] + norm_print[1])
-                    
 
                 # weighted sum of all the gradient losses
                 final_grad_adv = gamma * (-norm_grad_losses[0]) + (1-gamma) * (-norm_grad_losses[1])
@@ -403,7 +383,7 @@ def optimize_patch(cfg):
 
                 # update patch variable gradient with the overall formulation
                 model.patch.grad.data = final_grad_adv * weights[0] + \
-                    norm_grad_losses[2] * weights[1] + norm_grad_losses[3] * weights[2]
+                    norm_grad_losses[2] * weights[1] # + norm_grad_losses[3] * weights[2]
 
                 # step  
                 optimizer.step()
@@ -418,11 +398,8 @@ def optimize_patch(cfg):
             del patch_masks
             del norm_grad_losses
             del norm_print
-            #------------------------------------------------------------------------------------------------------------------
-            #------------------------------------------------------------------------------------------------------------------
  
         fmt_str = "Epochs [{:d}/{:d}]  Mean Losses: adv no misc {:.4f}, adv misc {:.4f}, Smoothing: {:.4f}, NPS {:.4f} (on {:d} training samples)  | gamma: {:.4f} |Mean value patch: {:.4f} "
-        
 
         print_str = fmt_str.format(
                 i + 1,
@@ -438,8 +415,6 @@ def optimize_patch(cfg):
         print(print_str)
 
         i += 1
-
-    
 
     # save test1 and test2 results
     if cfg_patch_opt["opt_validation_log1"] is True:
@@ -474,13 +449,6 @@ if __name__ == "__main__":
         cfg = yaml.safe_load(fp)
 
     optimize_patch(cfg)
-
-
-
-
-
-
-
 
     """
     #--------------------------------------------------------------------------------------------------
@@ -523,11 +491,7 @@ if __name__ == "__main__":
                 #patch_utils.save_tensor_png(ex_adv_image, cfg_patch_opt["out_fig"]+"perturbed_image"+str(i)+'.png', bgr=True, img_norm=False, mean = train_loader.mean)
 
                 del ex_clear_image, ex_adv_image, ex_clear_out, ex_adv_out 
-
-
     """
-    
-
 
 
 '''
