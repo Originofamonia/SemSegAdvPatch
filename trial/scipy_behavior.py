@@ -80,5 +80,32 @@ def main():
         print("WARN: resizing labels yielded fewer classes")
 
 
+def pil_vs_imageio():
+    """
+    compare the difference between PIL and imageio read images
+    Conclusion: the same
+    """
+    img_path = f'data/frankfurt_000001_078803_leftImg8bit.png'
+    lbl_path = f'data/frankfurt_000001_078803_gtFine_labelIds.png'
+    img_imageio = imageio.imread(img_path)
+    img_pil = np.array(Image.open(img_path))
+    fig = plt.figure(figsize=(10, 10))
+    # Add subplot in 1st position
+    ax1 = fig.add_subplot(1, 2, 1)
+    ax1.imshow(img_imageio)
+    ax1.axis('off')
+    ax1.set_title("imageio")
+
+    # Add subplot in 2nd position
+    ax2 = fig.add_subplot(1, 2, 2)
+    ax2.imshow(img_pil)
+    ax2.axis('off')
+    ax2.set_title("PIL")
+
+    # Save the figure as an image
+    plt.savefig(f'out_dir/imageio_vs_PIL.png')
+
+
 if __name__ == '__main__':
-    main()
+    # main()
+    pil_vs_imageio()
