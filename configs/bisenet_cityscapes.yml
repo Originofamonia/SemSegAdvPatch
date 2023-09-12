@@ -1,6 +1,7 @@
 device:
     gpu: 1
     n_workers: 4
+    seed: 1337
 
 model:
     arch: bisenetX39
@@ -10,7 +11,7 @@ model:
 
 data:
     dataset: cityscapes
-    version: ddrnet_23 #needed for pretrained version
+    version: ddrnet_23 # needed for pretrained version
     train_split: val
     val_split: val
     test_split: test

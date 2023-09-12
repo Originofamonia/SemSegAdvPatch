@@ -23,10 +23,10 @@ The code is out now!
 The Semantic Segmentation utilities are from https://github.com/meetps/pytorch-semseg.
 
 #### Setup
-This code was tested in a virtual environment with Python3.6, on a GPU cluster that supported CUDA>=11.1. 
+This code was tested in a virtual environment with Python3.9, on a GPU cluster that supported CUDA>=10.2. 
 You might want to check the installation requirements of your machine before proceeding.
 ```
-pip install -r requirements-gpu1.txt
+pip install -r requirements.txt
 ```
 
 #### Datasets

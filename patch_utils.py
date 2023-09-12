@@ -1,19 +1,14 @@
-#---------------------------------------------------------------------
-#---------------------------------------------------------------------
-# Patch utils file
-
-#---------------------------------------------------------------------
-#---------------------------------------------------------------------
+"""
+Patch utils file
+"""
 
 import torch
 import torch.nn as nn
 import pickle
-import torchvision
-import torch.utils.model_zoo as model_zoo
-import torchvision.transforms as transforms
-import math
+# import torch.utils.model_zoo as model_zoo
+# import torchvision.transforms as transforms
+# import math
 import kornia
-
 
 import scipy.misc as misc
 import numpy as np
@@ -21,21 +16,12 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 import os
 
-
 from PIL import Image
-import imageio
-
-
-import scipy.misc 
-import cv2
+# import imageio
+# import scipy.misc 
+# import cv2
 import matplotlib.pyplot as plt
-
-
-import matplotlib
-import matplotlib.pyplot as plt
-
-
-import time
+# import time
 
 
 #---------------------------------------------------------------------
@@ -46,7 +32,7 @@ class PatchConstraints(object):
         self.max_val = set_loader.max_val
         self.min_val = set_loader.min_val
         print("patch constraints (min-max): " + str(self.min_val) + " - " + str(self.max_val))
-        return
+        # return
     
     def __call__(self,module):
         if hasattr(module,'patch'):
@@ -54,12 +40,9 @@ class PatchConstraints(object):
             w[:,0,:,:] = w[:,0,:,:].clamp(self.min_val[0], self.max_val[0])
             w[:,1,:,:] = w[:,1,:,:].clamp(self.min_val[1], self.max_val[1])
             w[:,2,:,:] = w[:,2,:,:].clamp(self.min_val[2], self.max_val[2])
-            module.patch.data=w
-    
+            module.patch.data = w
 
 
-
-    
 #---------------------------------------------------------------------
 # patch_params
 #---------------------------------------------------------------------
@@ -94,7 +77,6 @@ class patch_params(object):
             self.min_scaling =  min_scaling
 
 
-
 #---------------------------------------------------------------------
 # export the patch as numpy
 #---------------------------------------------------------------------
@@ -104,28 +86,23 @@ def save_patch_numpy(patch, path):
         pickle.dump(patch_np, f)
 
 
-
 #---------------------------------------------------------------------
 # export an obj into a pkl file
 #---------------------------------------------------------------------
-def save_obj(path, obj = None):
+def save_obj(path, obj=None):
     with open(path, 'wb') as f:
         pickle.dump(obj, f)
-
-
 
 
 #---------------------------------------------------------------------
 # Import a new patch from a png value
 #---------------------------------------------------------------------
-def get_patch_from_img(path,set_loader):
-    patch = imageio.imread(path)
+def get_patch_from_img(path, set_loader):
+    patch = np.array(Image.open(path))
     patch = set_loader.image_transform(patch, resize=False)
     patch = np.expand_dims(patch, 0)
     patch = torch.from_numpy(patch).float()
     return patch
-
-
 
 
 #---------------------------------------------------------------------
@@ -142,10 +119,7 @@ def get_random_patch(cfg_patch, set_loader):
     patch[:,0,:,:] /= set_loader.std[0]
     patch[:,1,:,:] /= set_loader.std[1]
     patch[:,2,:,:] /= set_loader.std[2]
-
     return patch
-
-
 
 
 #---------------------------------------------------------------------
@@ -158,7 +132,6 @@ def get_patch_from_numpy(path):
     return patch
 
 
-
 #---------------------------------------------------------------------
 # Remove mask from a batch of images
 #---------------------------------------------------------------------
@@ -166,8 +139,6 @@ def remove_mask (images,mask):
     mask = F.interpolate(mask, size=images.shape[1:],mode='bilinear', align_corners=True)
     images[mask.squeeze(1)==1] = 255.0
     return images
-
-
 
 
 #---------------------------------------------------------------------
@@ -182,8 +153,6 @@ def init_model_patch(model, mode = "train", seed_patch = None):
     # load an already trained patch for testing
     elif mode =='test':
         model.patch = nn.Parameter(seed_patch, requires_grad=False)
-    
-
 
 
 #---------------------------------------------------------------------
@@ -195,8 +164,6 @@ def init_model_patch(model, mode = "train", seed_patch = None):
 def set_multiple_output(model):
     # add new attribute into the model class
     setattr(model, "multiple_outputs", True)
-
-
 
 
 #---------------------------------------------------------------------
@@ -221,11 +188,6 @@ def add_patch_to_batch(
             int_filtering=int_filtering)
 
     return images, patch_mask
-
-
-
-
-
 
 
 #---------------------------------------------------------------------
@@ -257,10 +219,6 @@ def add_patch(image,
     return perturbated_image, patch_mask[0,:,:]
 
 
-
-
-
-
 #---------------------------------------------------------------------
 # TRANSFORMATION : Rotation
 # the actual rotation angle is rotation_angle * 90 on all the 3 channels
@@ -271,9 +229,6 @@ def rotate_patch(in_patch):
     for i in range(0, rotation_angle):
         in_patch = in_patch.transpose(2,3).flip(3)
     return in_patch
-
-
-
 
 
 #---------------------------------------------------------------------
@@ -287,9 +242,6 @@ def random_scale_patch(patch, patch_params):
     return patch
 
 
-
-
-
 #---------------------------------------------------------------------
 # TRANSFORMATION: translation
 # scale the patch (define the methodologies)
@@ -299,9 +251,6 @@ def random_pos(patch, image_size):
     x_location = np.random.randint(low=0, high=x_location - patch.shape[3])
     y_location = np.random.randint(low=0, high=y_location - patch.shape[2])
     return x_location, y_location
-
-
-
 
 
 #---------------------------------------------------------------------
@@ -316,8 +265,6 @@ def random_pos_local(patch, x_pos, y_pos, patch_params):
     return x_location, y_location
 
 
-
-
 #---------------------------------------------------------------------
 # TRANSFORMATION: uniform noise
 #---------------------------------------------------------------------
@@ -327,6 +274,7 @@ def unif_noise(patch, magnitude, mean=[0, 0, 0], std=[1, 1, 1], max_val=255):
     patch_noise = (torch.clamp(((patch + noise) * std + mean), 0, max_val) - mean) / std
     return patch_noise
 
+
 #---------------------------------------------------------------------
 # TRANSFORMATION: gaussian noise
 #---------------------------------------------------------------------
@@ -334,7 +282,6 @@ def gaussian_noise(patch, magnitude, mean=[0, 0, 0], std=[1, 1, 1], max_val=255)
     noise = magnitude * torch.randn(patch.size(), requires_grad=False).to('cuda')
     patch_noise = (torch.clamp(((patch + noise) * std + mean), 0, max_val) - mean) / std
     return patch_noise
-
 
 
 #---------------------------------------------------------------------
@@ -354,6 +301,7 @@ def get_integer_patch(patch, patch_param):
 #         int_patch /= 255.0
     return int_patch
 
+
 #---------------------------------------------------------------------
 # TRANSFORMATION: contrast change
 #---------------------------------------------------------------------
@@ -372,7 +320,6 @@ def brightness_change(patch, magnitude, mean=[0, 0, 0], std=[1, 1, 1], max_val=2
 #     for c in range(3):
 #         patch[:, c, :, :] = torch.clamp(patch[:, c, :, :] + bright_delta, -mean[0, c, 0, 0].cpu().numpy(), 255-mean[0, c, 0, 0].cpu().numpy())
     return patch
-
 
 
 #---------------------------------------------------------------------
@@ -400,8 +347,6 @@ def get_dest_corners(patch, extrinsic, intrinsic, pixel_dim=0.2, offset=[0, 0, 0
     return torch.transpose(corner_pixels, 1, 2)
 
 
-
-
 #---------------------------------------------------------------------
 # patch projection for specific attack
 #---------------------------------------------------------------------
@@ -413,7 +358,6 @@ def project_patch(im, patch, extrinsic, intrinsic, patch_params, pixel_dim=0.2, 
     max_val = 255
     if patch_params.set_loader.img_norm:
         max_val = 1
-        
 
     # Define corners of each pixel of the patch (sign reference frame)
     p_h, p_w = patch.shape[2:]
@@ -425,7 +369,6 @@ def project_patch(im, patch, extrinsic, intrinsic, patch_params, pixel_dim=0.2, 
         patch = contrast_change(patch, magnitude=0.1, mean=mean, std=std, max_val=max_val)
     if int_filtering is True:
         patch = get_integer_patch(patch, patch_params, mean=mean, std=std, max_val=max_val)
-        
     
     if p_h != p_w:
         im_p = im
@@ -453,8 +396,7 @@ def project_patch(im, patch, extrinsic, intrinsic, patch_params, pixel_dim=0.2, 
             mask_img = torch.ones((h, w), device=device) - mask
 
             im_p = im_p * mask_img  + data_warp * mask
-        
-        
+
     else:
         
         points_src = torch.Tensor([[
@@ -493,8 +435,6 @@ def project_patch_batch(images, patch, extrinsic, intrinsic, patch_params, pixel
     return images, patch_mask
 
 
-
-
 #---------------------------------------------------------------------
 # Apply transformation to the patch and generate masks
 #---------------------------------------------------------------------
@@ -527,7 +467,6 @@ def mask_generation(
         x_location, y_location = random_pos_local(patch, x_pos = x_location, y_pos = y_location, patch_params=patch_params)
         #patch = rotate_patch(patch)
 
-
     if int_filtering is True:
         patch = get_integer_patch(patch, patch_params)
     applied_patch[:,  y_location:y_location + patch.shape[2], x_location:x_location + patch.shape[3]] = patch[0]
@@ -538,7 +477,6 @@ def mask_generation(
     img_mask = torch.ones([3,image_size[1], image_size[2]]).to('cuda') - patch_mask
 
     return applied_patch, patch_mask, img_mask, x_location, y_location
-
 
 
 #---------------------------------------------------------------------
@@ -585,10 +523,6 @@ def convert_tensor_SS_image(im_tensor, model_name = None, orig_size = None, set_
     return decoded_p_out
 
 
-
-
-
-
 #---------------------------------------------------------------------
 # export the patch as png (for visualization)
 #---------------------------------------------------------------------
@@ -604,9 +538,6 @@ def save_patch_png(patch, path, set_loader):
     print("save patch as img ", path)
     patch_img.save(path)
     del np_patch
-
-    
-
 
 
 #-------------------------------------------------------------------
@@ -657,7 +588,6 @@ def save_summary_img(tensor_list, path, model_name, orig_size, set_loader, count
         
     print("summary_patch" + str(count) + "_" + str(img_num) + ".png" + " saved ")
 
-
     
 #---------------------------------------------------------------------
 # Basic implementation of the neighrest neighbors labels 
@@ -679,8 +609,6 @@ def remove_target_class(label, attacked, target, scale=1, maxd=250):
     return label.long()
 
 
-
-
 #---------------------------------------------------------------------
 # Remove mask from a batch of images
 #---------------------------------------------------------------------
@@ -688,7 +616,6 @@ def remove_mask (images,mask):
     mask = F.interpolate(mask, size=images.shape[1:],mode='bilinear', align_corners=True)
     images[mask.squeeze(1)==1] = 250.0
     return images
-
 
 
 def nearest_neighbor(label, attacked, maxd=250, scale=1):
@@ -730,9 +657,6 @@ def nearest_neighbor(label, attacked, maxd=250, scale=1):
     return label
 
 
-
 def untargeted_labeling(label, attacked):
     torch.where(label != attacked, label, 255)    
     return label
-
-    

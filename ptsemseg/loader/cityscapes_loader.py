@@ -1,7 +1,7 @@
 import os
 # import torch
 import numpy as np
-import scipy.misc as m
+# import scipy.misc as m
 from PIL import Image
 
 from ptsemseg.loader.base_cityscapes_loader import baseCityscapesLoader

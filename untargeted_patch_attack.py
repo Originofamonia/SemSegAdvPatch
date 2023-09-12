@@ -1,9 +1,6 @@
-#---------------------------------------------------------------------
-#---------------------------------------------------------------------
-# patch optimization via Expectation Over Transformation (EOT)
-#
-#---------------------------------------------------------------------
-#---------------------------------------------------------------------
+"""
+patch optimization via Expectation Over Transformation (EOT)
+"""
 
 import os
 import yaml
@@ -17,10 +14,8 @@ import time
 
 from torch.utils import data
 from tqdm import tqdm
-# import imageio
-import torch.nn as nn
 
-# import scipy.misc as misc
+import torch.nn as nn
 
 import patch_utils as patch_utils
 import test_patch as test_patch
@@ -55,7 +50,7 @@ def optimize_patch(cfg):
     random.seed(cfg.get("seed", 1337))
 
     # Setup Augmentations TODO NONE
-    augmentations = None #cfg["training"].get("augmentations", None)
+    augmentations = None # cfg["training"].get("augmentations", None)
     data_aug = get_composed_augmentations(augmentations)
 
     # Setup Dataloader
@@ -432,7 +427,7 @@ def optimize_patch(cfg):
     print("Final patch saved")
 
 
-if __name__ == "__main__":
+def main():
     torch.autograd.set_detect_anomaly(True)
     parser = argparse.ArgumentParser(description="config")
     parser.add_argument(
@@ -552,3 +547,6 @@ if __name__ == "__main__":
             #------------------------------------------------------------------------------------------------------
             #------------------------------------------------------------------------------------------------------
 '''
+
+if __name__ == "__main__":
+    main()
