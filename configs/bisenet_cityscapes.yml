@@ -2,6 +2,7 @@ device:
     gpu: 1
     n_workers: 4
     seed: 1337
+    wandb: False
 
 model:
     arch: bisenetX39
@@ -51,7 +52,7 @@ adv_patch:
 
 
         num_opt_samples: 100
-        opt_iters: 200
+        epochs: 200
         batch_size: 5
 
         use_multiple_outputs: False    # Aux logits on/off

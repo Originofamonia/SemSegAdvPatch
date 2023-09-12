@@ -5,7 +5,7 @@ patch optimization via Expectation Over Transformation (EOT)
 import os
 import yaml
 import time
-import shutil
+# import shutil
 import torch
 import random
 import argparse
@@ -13,9 +13,9 @@ import numpy as np
 import time
 
 from torch.utils import data
-from tqdm import tqdm
-
-import torch.nn as nn
+# from tqdm import tqdm
+import wandb
+# import torch.nn as nn
 
 import patch_utils as patch_utils
 import test_patch as test_patch
@@ -30,7 +30,7 @@ from ptsemseg.augmentations import get_composed_augmentations
 from ptsemseg.schedulers import get_scheduler
 from ptsemseg.optimizers import get_optimizer
 from ptsemseg.utils import get_model_state
-from ptsemseg.loss import loss
+# from ptsemseg.loss import loss
 
 from tensorboardX import SummaryWriter
 
@@ -44,10 +44,10 @@ def optimize_patch(cfg):
     torch.cuda.set_device(cfg["device"]["gpu"])
 
     # Setup seeds
-    torch.manual_seed(cfg.get("seed", 1337))
-    torch.cuda.manual_seed(cfg.get("seed", 1337))
-    np.random.seed(cfg.get("seed", 1337))
-    random.seed(cfg.get("seed", 1337))
+    torch.manual_seed(cfg["device"]["seed"])
+    torch.cuda.manual_seed(cfg["device"]["seed"])
+    np.random.seed(cfg["device"]["seed"])
+    random.seed(cfg["device"]["seed"])
 
     # Setup Augmentations TODO NONE
     augmentations = None # cfg["training"].get("augmentations", None)
@@ -154,10 +154,10 @@ def optimize_patch(cfg):
 
         
     # initialize the patch into the model 
-    patch_utils.init_model_patch(model = model, mode = "train", seed_patch = seed_patch)
+    patch_utils.init_model_patch(model=model, mode="train", seed_patch=seed_patch)
 
     if cfg_patch_opt['use_multiple_outputs'] == True:
-        patch_utils.set_multiple_output(model = model)
+        patch_utils.set_multiple_output(model=model)
 
     print(device)
     model = model.to(device)
@@ -208,22 +208,22 @@ def optimize_patch(cfg):
         rw_transformations = use_rw_transformations
     )
     
-    while i <= cfg_patch_opt["opt_iters"]:
+    while i <= cfg_patch_opt["epochs"]:
 
         #------------------------------------------------------------------------------------------------------
         # ONLINE TEST 
         #------------------------------------------------------------------------------------------------------
-        if i % cfg_patch_opt["test_log"] == 0:
+        if i % cfg_patch_opt["test_log"] == 0:  # test every test_log epochs
 
             if cfg_patch_opt["opt_validation_log1"] is True:
-                score, class_iou, ex_clear_image, ex_adv_image, ex_clear_out, ex_adv_out   = test_patch.test_patch(
-                        cfg = cfg,
-                        loader = valloader,
-                        n_classes = n_classes,
-                        patch = model.patch.clone(), 
-                        output_file = None,
-                        use_transformations = False, 
-                        patch_params = patch_params
+                score, class_iou, ex_clear_image, ex_adv_image, ex_clear_out, ex_adv_out = test_patch.test_patch(
+                    cfg=cfg,
+                    loader=valloader,
+                    n_classes=n_classes,
+                    patch=model.patch.clone(), 
+                    output_file=None,
+                    use_transformations=False, 
+                    patch_params=patch_params
                 )
 
                 print("---------------TEST LOG 1----------------------")
@@ -232,6 +232,8 @@ def optimize_patch(cfg):
                 print("Mean Acc:")
                 print(score["Mean Acc : \t"])
                 print("-----------------------------------------------")
+                if cfg['device']['wandb']:
+                    wandb.log({'Mean IoU': score["Mean IoU : \t"], 'Mean Acc': score["Mean Acc : \t"]})
 
                 online_test1_results.append({"score": score, "class_iou": class_iou, "iteration_count": str(i)})
                 
@@ -274,10 +276,8 @@ def optimize_patch(cfg):
         epoch_gamma.append(0)
         
         for (images, labels) in trainloader:
-
-            images = images.to(device)
-
-            if isinstance(labels, list):
+            images = images.to(device)  # [B, 3, 1024, 2048]
+            if isinstance(labels, list):  # [B, 1024, 2048]
                 labels, extrinsic, intrinsic = labels
                 extrinsic, intrinsic = extrinsic.to(device), intrinsic.to(device)
                 
@@ -285,7 +285,6 @@ def optimize_patch(cfg):
 
             # extract the predicted labels that are used in the optimization loss function
             # comment this part if you want to use original labes
-
             '''
             prediction_labels = None
             clear_prediction = None
@@ -311,14 +310,13 @@ def optimize_patch(cfg):
                 iter_batch_count += 1
 
                 # add_patch to the inputs using multiple transformations (wrt EOT)
-                perturbed_images, patch_masks = patch_utils.add_patch_to_batch(
-
-                            images = images.clone(), 
-                            patch = model.patch, 
-                            patch_params = patch_params,
-                            device = device,  
-                            use_transformations=use_transformations, 
-                            int_filtering=False)
+                perturbed_images, patch_masks = patch_utils.add_patch_to_batch(  # look into
+                    images = images.clone(), 
+                    patch = model.patch, 
+                    patch_params = patch_params,
+                    device = device,  
+                    use_transformations=use_transformations, 
+                    int_filtering=False)
                 
                 model.patch.requires_grad = True
 
@@ -328,7 +326,7 @@ def optimize_patch(cfg):
                 perturbed_images = perturbed_images.to(device)
 
                 optimizer.zero_grad()
-                outputs = model(perturbed_images)
+                outputs = model(perturbed_images)  # [B, 19, 1024, 2048]
 
                 # compute losses
                 #loss_no_misc, loss_misc, gamma = loss_fn(input=outputs, target=prediction_labels) 
@@ -398,7 +396,7 @@ def optimize_patch(cfg):
 
         print_str = fmt_str.format(
                 i + 1,
-                cfg_patch_opt["opt_iters"],
+                cfg_patch_opt["epochs"],
                 epoch_loss[i][0]/epoch_samples,
                 epoch_loss[i][1]/epoch_samples,
                 epoch_loss[i][2]/epoch_samples,
@@ -408,7 +406,6 @@ def optimize_patch(cfg):
                 torch.mean(torch.abs(model.patch.data)).item() 
             )
         print(print_str)
-
         i += 1
 
     # save test1 and test2 results
@@ -443,7 +440,18 @@ def main():
     with open(args.config) as fp:
         cfg = yaml.safe_load(fp)
 
+    # start a new wandb run to track this script
+    if cfg['device']['wandb']:
+        wandb.init(
+            # set the wandb project where this run will be logged
+            project="untargeted_patch_attack",
+            # track hyperparameters and run metadata
+            config=cfg
+        )
     optimize_patch(cfg)
+    if cfg['device']['wandb']:
+        # [optional] finish the wandb run, necessary in notebooks
+        wandb.finish()
 
     """
     #--------------------------------------------------------------------------------------------------

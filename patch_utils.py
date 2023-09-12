@@ -46,7 +46,6 @@ class PatchConstraints(object):
 #---------------------------------------------------------------------
 # patch_params
 #---------------------------------------------------------------------
-
 class patch_params(object):
     def __init__(self, 
         x_default = 0, 
@@ -125,7 +124,7 @@ def get_random_patch(cfg_patch, set_loader):
 #---------------------------------------------------------------------
 # Import the patch from a numpy file
 #---------------------------------------------------------------------
-def get_patch_from_numpy(path):
+def get_patch_from_numpy(path, cfg_patch):
     print("retrieving patch from: " + cfg_patch['path'])
     with open(path, 'rb') as f:
         patch = torch.from_numpy(pickle.load(f))
@@ -135,8 +134,8 @@ def get_patch_from_numpy(path):
 #---------------------------------------------------------------------
 # Remove mask from a batch of images
 #---------------------------------------------------------------------
-def remove_mask (images,mask):
-    mask = F.interpolate(mask, size=images.shape[1:],mode='bilinear', align_corners=True)
+def remove_mask(images,mask):
+    mask = F.interpolate(mask, size=images.shape[1:], mode='bilinear', align_corners=True)
     images[mask.squeeze(1)==1] = 255.0
     return images
 

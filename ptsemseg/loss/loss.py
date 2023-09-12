@@ -1,6 +1,7 @@
 import torch
 import torch.nn.functional as F
 
+
 #---------------------------------------------------------------------
 # Modified loss function for patch optimization. L = gamma * sum_{correct_pixels}(CE) + (1-gamma) * sum_{wrong_pixels}(CE)
 # if gamma parameter = -1, a fixed dynamic version of gamma is used:
@@ -48,7 +49,6 @@ def untargeted_patch_composition(input, target, patch_mask, weight=None, size_av
     else:
         ret_gamma = gamma
 
-    
     if gamma == -2:
         # pixel-wise cross entropy on pixels out of patch
         target_without_patch = target.clone()
@@ -58,7 +58,6 @@ def untargeted_patch_composition(input, target, patch_mask, weight=None, size_av
         )
         ret_gamma = 1.0
         del target_without_patch
-        
 
     elif gamma == -3:
         # pixel-wise cross entropy on all image pixels
@@ -66,7 +65,6 @@ def untargeted_patch_composition(input, target, patch_mask, weight=None, size_av
         input, target, reduction='sum', ignore_index=250, weight=weight
         )
         ret_gamma = 1.0
-
 
     else:
         # loss for not yet misclassified elements
@@ -112,7 +110,6 @@ def multi_scale_patch_composition(input, target, weight=None, patch_mask = None,
     return loss_no_misc, loss_misc, ret_gamma
 
 
-
 #---------------------------------------------------------------------
 # NON-PRINTABILITY SCORE 
 #---------------------------------------------------------------------
@@ -142,7 +139,6 @@ def NPS(patch, patch_params, color_list=[]):
 #     print(diff_prod.shape)
     
     return torch.sum(diff_prod)
-
 
 
 #---------------------------------------------------------------------
@@ -180,7 +176,6 @@ def cross_entropy2d(input, target, weight=None, size_average=True):
     return loss
 
 
-
 #---------------------------------------------------------------------
 #---------------------------------------------------------------------
 def multi_scale_cross_entropy2d(input, target, weight=None, size_average=True, scale_weight=None):
@@ -200,7 +195,6 @@ def multi_scale_cross_entropy2d(input, target, weight=None, size_average=True, s
         )
 
     return loss
-
 
 
 #---------------------------------------------------------------------
@@ -234,8 +228,6 @@ def bootstrapped_cross_entropy2d(input, target, K, weight=None, size_average=Tru
             size_average=size_average,
         )
     return loss / float(batch_size)
-
-
 
 
 #---------------------------------------------------------------------
@@ -319,14 +311,12 @@ def targeted_patch_composition(input, target, patch_mask, weight=None, size_aver
     del target_only_misc, target_only_no_misc
 
     return loss_no_misc, loss_misc, ret_gamma
-    
-
 
 
 #---------------------------------------------------------------------
 # Multi-input of the untargeted_patch_composition loss function (to consider also aux_logits)
 #---------------------------------------------------------------------
-def multi_scale_patch_composition_targeted(input, target, weight=None, patch_mask = None, size_average=True, scale_weight=None, gamma = 0.9):
+def multi_scale_patch_composition_targeted(input, target, weight=None, patch_mask=None, size_average=True, scale_weight=None, gamma = 0.9):
     if not isinstance(input, tuple):
         return targeted_patch_composition(input=input, target=target, patch_mask = patch_mask, weight=weight, size_average=size_average, gamma=gamma)
 
@@ -350,4 +340,3 @@ def multi_scale_patch_composition_targeted(input, target, weight=None, patch_mas
         ret_gamma      =   out_gamma if (ret_gamma is None) else ret_gamma
 
     return loss_no_misc, loss_misc, ret_gamma
-

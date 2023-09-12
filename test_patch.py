@@ -4,10 +4,8 @@ import argparse
 import timeit, time
 import numpy as np
 from collections import OrderedDict
-
 from torch.utils import data
 import os
-
 
 import patch_utils as patch_utils
 from ptsemseg.models import get_model
@@ -16,14 +14,10 @@ from ptsemseg.metrics import runningScore
 from ptsemseg.utils import convert_state_dict
 from ptsemseg.utils import get_model_state
 
-
 torch.backends.cudnn.benchmark = True
 
 
-#---------------------------------------------------------------------------------
-# 
-#---------------------------------------------------------------------------------
-def test_patch( cfg, 
+def test_patch(cfg, 
                 loader, 
                 n_classes, 
                 patch = None, 
@@ -58,9 +52,7 @@ def test_patch( cfg,
     model.to(device)
 
     for i, (images, labels) in enumerate(loader):
-
         with torch.no_grad():
-
             images = images.to(device)
             if isinstance(labels, list):
                 labels, extrinsic, intrinsic = labels
@@ -101,25 +93,17 @@ def test_patch( cfg,
             
             # comment to validate on the entire dataset
 
-        
-
     score, class_iou = running_metrics.get_scores()
-
-
     return score, class_iou, ex_clear_image, ex_adv_image, ex_clear_out, ex_adv_out  
 
 
-#---------------------------------------------------------------------------------
-# 
-#---------------------------------------------------------------------------------
-def test_rw_patch( cfg, 
+def test_rw_patch(cfg, 
                 loader, 
                 n_classes, 
                 patch = None, 
                 patch_params = None,
                 output_file = None, 
                 use_transformations=False):
-
     running_metrics = runningScore(n_classes)
 
     ex_clear_image, ex_adv_image      =  None, None
@@ -147,9 +131,7 @@ def test_rw_patch( cfg,
     model.to(device)
 
     for i, (images, labels) in enumerate(loader):
-
         with torch.no_grad():
-
             images = images.to(device)
             if isinstance(labels, list):
                 labels, extrinsic, intrinsic = labels
@@ -172,7 +154,6 @@ def test_rw_patch( cfg,
 
                 ex_adv_out = model(ex_adv_image)
             #-------------------------------------------------------------------
-
             images = patch_utils.add_patch_to_batch(
                     images, 
                     patch = model.patch, 
@@ -187,18 +168,11 @@ def test_rw_patch( cfg,
 #             gt = labels.numpy()
             running_metrics.update(pred_outputs, pred)
 
-        
-
     score, class_iou = running_metrics.get_scores()
-
-
     return score, class_iou, ex_clear_image, ex_adv_image, ex_clear_out, ex_adv_out  
 
 
-#---------------------------------------------------------------------------------
-# 
-#---------------------------------------------------------------------------------
-def test_specific_patch( cfg, 
+def test_specific_patch(cfg, 
                         loader, 
                         n_classes, 
                         patch, 
@@ -206,7 +180,6 @@ def test_specific_patch( cfg,
                         output_file = None, 
                         use_transformations=False, 
                         ):
-
     running_metrics = runningScore(n_classes)
 
 #     ex_clear_image, ex_adv_image      =  None, None
@@ -252,8 +225,6 @@ def test_specific_patch( cfg,
             
 #             adv_images = patch_utils.project_patch_blocks_batch(images, model.patch, extrinsic, intrinsic, pixel_width=pixel_width, 
 #                                                   block_width=block_width, offset=offset, rescale=rescale, device=device)
-
-            #-------------------------------------------------------------------
             
             outputs = model(adv_images)
             pred = outputs.data.max(1)[1].cpu().numpy()
@@ -264,15 +235,9 @@ def test_specific_patch( cfg,
         print("Performed test on %d/%d batches... ETA: %.3f seconds" % (i+1, len(loader), (len(loader) - (i+1)) * batch_time), end='\r')
             
     score, class_iou = running_metrics.get_scores()
-
     return score, class_iou
 
 
-
-
-#-----------------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------------
 def load_model(cfg, loader, n_classes, device='cuda'):
     # Setup Model and patch
     model_file_name = os.path.split(cfg["model"]["path"])[1]
@@ -286,11 +251,6 @@ def load_model(cfg, loader, n_classes, device='cuda'):
     return model 
 
 
-
-
-#-----------------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------------
 def get_examples(cfg, 
                 loader, 
                 set_loader,
@@ -341,7 +301,6 @@ def get_examples(cfg,
             outputs = outputs.detach().cpu()
             patched_images = patched_images.detach().cpu()
             patched_outputs = patched_outputs.detach().cpu()
-
             
             if clear_images is None:
                 clear_images, clear_outputs = images.clone(), outputs.clone()
@@ -354,20 +313,13 @@ def get_examples(cfg,
                 clear_outputs = torch.cat((clear_outputs, outputs))
                 adv_outputs = torch.cat((adv_outputs, patched_outputs))
    
-        if(i >= num_batch -1):
+        if i >= num_batch - 1:
             break
-    
-
 
     return clear_images, adv_images, clear_outputs, adv_outputs
 
 
-
-
-#-----------------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------------
-def get_specific_examples( cfg, 
+def get_specific_examples(cfg, 
                         loader, 
                         n_classes, 
                         patch_params,
@@ -391,7 +343,6 @@ def get_specific_examples( cfg,
     block_width, rescale = cfg['adv_patch']['attr']['block_width'], cfg['adv_patch']['attr']['rescale']
     pixel_width = real_width / p_w
     for i, (images, labels) in enumerate(loader):
-
         with torch.no_grad():
             images = images.to(device)
             if isinstance(labels, list):
@@ -406,7 +357,6 @@ def get_specific_examples( cfg,
                                                                    rescale=rescale, device=device, patch_params=patch_params)[0]# mean=loader.dataset.mean, std=loader.dataset.std)
 #                 patched_images = patch_utils.project_patch_blocks_batch(images, model.patch, extrinsic, intrinsic, pixel_width=pixel_width, 
 #                                                   block_width=block_width, offset=offset, rescale=rescale, device=device)
-#                
             else:
                 patched_images = images.clone()
 
@@ -416,7 +366,6 @@ def get_specific_examples( cfg,
             outputs = outputs.detach().cpu()
             patched_images = patched_images.detach().cpu()
             patched_outputs = patched_outputs.detach().cpu()
-
             
             if clear_images is None:
                 clear_images, clear_outputs = images.clone(), outputs.clone()
@@ -431,17 +380,10 @@ def get_specific_examples( cfg,
    
         if(i >= num_batch - 1):
             break
-    
-
 
     return clear_images, adv_images, clear_outputs, adv_outputs
 
 
-
-
-#-----------------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------------
 def get_score_validation( cfg, 
                 loader, 
                 n_classes, 
@@ -463,9 +405,7 @@ def get_score_validation( cfg,
     model.to(device)
 
     for i, (images, labels) in enumerate(loader):
-
         with torch.no_grad():
-
             images = images.to(device)
             if isinstance(labels, list):
                 labels, extrinsic, intrinsic = labels
@@ -486,17 +426,11 @@ def get_score_validation( cfg,
             gt = labels.numpy()
             running_metrics.update(gt, pred)
 
-
     score, class_iou = running_metrics.get_scores()
     return score, class_iou
 
 
-
-
-#-----------------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------------
-def get_score_validation_specifc( cfg, 
+def get_score_validation_specifc(cfg, 
                 loader, 
                 n_classes, 
                 patch, 
@@ -519,9 +453,7 @@ def get_score_validation_specifc( cfg,
     for i, (images, labels) in enumerate(loader):
 
         with torch.no_grad():
-
             images = images.to(device)
-
             if patch is not None:
                 images = patch_utils.add_patch_to_batch(
                     images.clone(), 

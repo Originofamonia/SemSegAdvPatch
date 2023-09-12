@@ -65,3 +65,4 @@ bin/
 .DS_Store
 
 pretrained_models
+wandb
