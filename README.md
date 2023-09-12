@@ -17,7 +17,6 @@ https://user-images.githubusercontent.com/92364988/145780409-9f4582eb-1916-456f-
 
 
 
-
 ## Code
 The code is out now!
 The Semantic Segmentation utilities are from https://github.com/meetps/pytorch-semseg.

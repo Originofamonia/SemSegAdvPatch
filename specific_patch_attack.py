@@ -17,11 +17,11 @@ import numpy as np
 import time
 
 from torch.utils import data
-from tqdm import tqdm
-import imageio
-import torch.nn as nn
+# from tqdm import tqdm
 
-import scipy.misc as misc
+# import torch.nn as nn
+
+# import scipy.misc as misc
 
 import patch_utils as patch_utils
 import test_patch as test_patch
